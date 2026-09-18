@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  background-color: #ECEAE3;
+  color: #191A19;
+}
+
+body, button, input, select, textarea, table {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Garamond for titles, numbers, card headers, and serif accents */
+h1, h2, h3, h4, h5, h6, .font-serif, .display-num {
+  font-family: 'EB Garamond', Garamond, Baskerville, Georgia, serif;
+}
+
+/* Custom sleek stone scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #ECEAE3;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D5D2C8;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #BDB9AD;
+}
+
+/* Subtle card shadow matching the reference image */
+.card-shadow {
+  box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.03);
+}
+
+.dock-shadow {
+  box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.05);
+}

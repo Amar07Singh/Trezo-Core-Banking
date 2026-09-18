@@ -1,0 +1,73 @@
+stages:
+  - lint
+  - test
+  - coverage
+  - build
+
+variables:
+  PYTHON_VERSION: "3.12"
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+cache:
+  paths:
+    - .cache/pip
+    - .venv/
+
+.python_base:
+  image: python:3.12-slim
+  before_script:
+    - python -V
+    - pip install --upgrade pip
+    - pip install -r backend/requirements.txt
+
+ruff_lint:
+  stage: lint
+  extends: .python_base
+  script:
+    - ruff check backend/app backend/tests
+    - ruff format --check backend/app backend/tests
+
+unit_tests:
+  stage: test
+  extends: .python_base
+  script:
+    - PYTHONPATH=backend pytest backend/tests/test_auth.py backend/tests/test_fraud_rules.py
+
+concurrency_and_ledger_tests:
+  stage: test
+  image: python:3.12-slim
+  services:
+    - name: postgres:16-alpine
+      alias: postgres
+  variables:
+    POSTGRES_USER: banking_user
+    POSTGRES_PASSWORD: banking_secure_password_2026
+    POSTGRES_DB: core_banking_test
+    POSTGRES_SERVER: postgres
+  before_script:
+    - pip install -r backend/requirements.txt
+  script:
+    - PYTHONPATH=backend pytest backend/tests/test_transfers.py backend/tests/test_concurrency.py
+
+coverage_gate:
+  stage: coverage
+  extends: .python_base
+  script:
+    - PYTHONPATH=backend pytest --cov=backend/app --cov-report=term --cov-report=xml --cov-fail-under=70 backend/tests
+  coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+
+docker_build:
+  stage: build
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE/api:latest backend/
+    - docker build -t $CI_REGISTRY_IMAGE/mock-gateway:latest mock-gateway/
+  only:
+    - main

@@ -1,0 +1,113 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: banking_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: banking_user
+      POSTGRES_PASSWORD: banking_secure_password_2026
+      POSTGRES_DB: core_banking
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U banking_user -d core_banking"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  gateway:
+    build:
+      context: ./mock-gateway
+      dockerfile: Dockerfile
+    container_name: mock_payment_gateway
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+
+  api_1:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: banking_api_1
+    restart: unless-stopped
+    environment:
+      INSTANCE_ID: api-node-01
+      ENVIRONMENT: development
+      POSTGRES_SERVER: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: banking_user
+      POSTGRES_PASSWORD: banking_secure_password_2026
+      POSTGRES_DB: core_banking
+      MOCK_GATEWAY_URL: http://gateway:8001
+      JWT_SECRET: super-secret-jwt-key-natwest-production-ready-32char
+    depends_on:
+      postgres:
+        condition: service_healthy
+      gateway:
+        condition: service_started
+    volumes:
+      - ./backend:/app
+    command: >
+      sh -c "alembic upgrade head &&
+             python scripts/seed.py &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+  api_2:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: banking_api_2
+    restart: unless-stopped
+    environment:
+      INSTANCE_ID: api-node-02
+      ENVIRONMENT: development
+      POSTGRES_SERVER: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: banking_user
+      POSTGRES_PASSWORD: banking_secure_password_2026
+      POSTGRES_DB: core_banking
+      MOCK_GATEWAY_URL: http://gateway:8001
+      JWT_SECRET: super-secret-jwt-key-natwest-production-ready-32char
+    volumes:
+      - ./backend:/app
+    depends_on:
+      api_1:
+        condition: service_started
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+  outbox_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: banking_outbox_worker
+    restart: unless-stopped
+    environment:
+      POSTGRES_SERVER: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: banking_user
+      POSTGRES_PASSWORD: banking_secure_password_2026
+      POSTGRES_DB: core_banking
+    volumes:
+      - ./backend:/app
+    depends_on:
+      api_1:
+        condition: service_started
+    command: python scripts/run_worker.py
+
+  nginx:
+    image: nginx:alpine
+    container_name: banking_load_balancer
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./frontend/dist:/usr/share/nginx/html:ro
+    depends_on:
+      - api_1
+      - api_2
+
+volumes:
+  postgres_data:
