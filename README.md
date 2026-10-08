@@ -25,37 +25,6 @@ A production-grade, ACID-compliant Core Banking & Transaction Management platfor
 
 ---
 
-## 1. Executive UI Design & Architecture Overview
-
-The frontend of **Trezo Core Banking** is crafted to match a luxury, institutional banking interface:
-- **Warm Matte Stone Canvas (`#ECEAE3`)**: Soft, non-glare background providing an organic, tactile aesthetic.
-- **Floating Vertical Left Dock**: Clean pill-shaped navigation container (`rounded-[36px]`, pure white, floating left dock) with quick access to Dashboard, Transfers, Cards, Statements, Compliance, and Account Settings.
-- **Pure White Rounded Cards (`rounded-[28px]` and `rounded-[32px]`)**: Generous rounded corners with subtle ambient shadows (`shadow-[0_4px_24px_rgba(0,0,0,0.03)]`).
-- **Forest & Sage Green Accents (`#2D4739` and `#5C7C68`)**: Deep, calming nature-inspired tones used for primary action buttons, active indicator pills, and the signature "Activity" card.
-- **Classical & Clean Typography Hierarchy**:
-  - **EB Garamond**: Used for all balance numbers, monetary values, brand headers, and card titles (`font-serif`).
-  - **Helvetica / Helvetica Neue**: Used throughout the interface for navigation, forms, buttons, transaction tables, and status pill badges (`font-sans`).
-- **Soft Pill Badges**:
-  - Positive / Credit / Active: Soft mint (`bg-[#E4EFE7] text-[#2E593E]`, e.g. `+2.45%`, `On track`, `Money In`).
-  - Negative / Debit / Attention: Soft blush (`bg-[#FCE8E6] text-[#D14334]`, e.g. `-4.75%`, `Money Out`).
-- **Exact 3-Row Dashboard Layout**:
-  - **Row 1 (4 KPI Cards)**:
-    1. *Spent this month* with dynamic vertical distribution mini bars.
-    2. *Active Accounts* with user icon and wave sparkline.
-    3. *Earnings / Inflow* with coin badge and quick refresh.
-    4. *Activity* — solid dusty sage green card with white curved sparkline.
-  - **Row 2 (3 Cards)**:
-    1. *Large Balance Card* — dual floating stat pills ("Saves" & "Available Balance"), "On track" pill, and **institutional financial line graph** with horizontal dashed reference lines, milestone nodes, active live node, and timeline axis.
-    2. *Earnings / Expense Breakdown* — semi-circular radial gauge dynamically driven by live debit-to-inflow ratios.
-    3. *User Profile Card* — avatar, customer name, email, and 3 quick live counters (Accounts, Transfers, Active Accounts).
-  - **Row 3 (3 Cards)**:
-    1. *Available Credit Card in Wallet* — "+ Add New Card" action button and 3D angled isometric Mastercard cards.
-    2. *Your Transfers* — recent activity with user initials, relative timestamps, and soft pill badges.
-    3. *Keep you safe!* — biometric fingerprint icon with "Update Your Security" controls.
-- **Clean Consumer Banking Tone**: Every trace of developer or internal node telemetry (`Node: api-node-01`, raw JSON logs, raw database connection strings) has been eliminated. All user and administrative pages display clear, friendly, executive-level banking language.
-
----
-
 ## 2. What is Kafka Doing in Core Banking? (Event Streaming & Outbox Deep Dive)
 
 In tier-1 financial institutions (such as NatWest, Barclays, and HSBC), **Apache Kafka** serves as the central event streaming backbone. Below is an exhaustive breakdown of why Kafka exists in modern banking architectures, what it is doing, and why it is paired with the **Transactional Outbox Pattern**.
